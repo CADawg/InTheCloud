@@ -83,22 +83,23 @@ function startTrip() {
 
         const start = form.find(".start").val();
         const end = form.find(".end").val();
-       // const quantity = parseInt(form.find(".quantity").val());
+        // const quantity = parseInt(form.find(".quantity").val());
 
         if (start === "none" || end === "none" /*|| quantity === 0*/) {
             alert("Please fill out all fields");
             return;
         }
 
-        /*if (quantity % 10 !== 0) {
-            alert("Quantity must be a multiple of 10");
-            return;
-        }*/
+        let distance = Math.sqrt((Math.abs(interestPoints[end][0] - interestPoints[start][0])) ** 2 + (Math.abs(interestPoints[end][1] - interestPoints[end][0])) ** 2)
+
+        let quantity = Math.floor(Math.random() * 16) - 5;
 
         data.push({
             start: start,
-         //   quantity: quantity,
-            end: end
+            quantity: quantity,
+            end: end,
+            distance: distance,
+            emissions: distance * quantity * 0.5
         });
     }
 
@@ -106,27 +107,27 @@ function startTrip() {
     let carbonEmissions = 0;
     let currentTrip = 0;
 
-    // random between -5 and 5
-    const random = Math.floor(Math.random() * 16) - 5;
-
     const placesWeMustGo = [];
 
     for (let i = 0; i < data.length; i++) {
+        let collected = false;
         if (!placesWeMustGo.includes(data[i].start)) {
             placesWeMustGo.push(data[i].start);
+            collected = true;
         }
         if (!placesWeMustGo.includes(data[i].end)) {
             placesWeMustGo.push(data[i].end);
+            collected = true;
+        }
+
+        if (collected) {
+            carbonEmissions += data[i].emissions;
+            cargo += data[i].quantity;
         }
     }
 
     for (let i = 0; i < placesWeMustGo.length - 1; i++) {
-        let random1To2WithDecimals = Math.random() * (2 - 1) + 1;
-        carbonEmissions += 0.0418 * cargo + random1To2WithDecimals * 10;
-
         setTimeout(() => {
-            cargo += random;
-
             if (cargo < 0) {
                 cargo = 0;
             } else if (cargo > 50) {
@@ -143,7 +144,7 @@ function startTrip() {
             setShipCargo(cargo);
             setSidebarStats({
                 total: carbonEmissions,
-                clientData:[],
+                clientData: [],
                 trip: currentTrip
             });
         }, 5000 * i + 1)
